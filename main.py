@@ -188,7 +188,7 @@ def get_input():
 
 def render_3d_world():
     for i, ray in enumerate(rays):
-        pygame.draw.rect(screen, (222, 222, 222))
+        pygame.draw.rect(screen, (222, 222, 222), pygame.Rect()
 
 def display():
     global rays
