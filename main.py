@@ -17,7 +17,7 @@ global_x = 0
 global_y = 0
 
 
-resolution = 4
+resolution = 2
 #colours
 RED = (255, 0, 0)
 class player:
@@ -96,7 +96,7 @@ def shoot_ray(direction):
 
     direction -= 90
     direction = direction * math.pi/180
-    r1 = ray(global_x * -1 + p1.x, global_y * -1 + p1.y, math.cos(direction) * (2*resolution), math.sin(direction) * (2*resolution))
+    r1 = ray(global_x * -1 + p1.x, global_y * -1 + p1.y, math.cos(direction) * 4*resolution, math.sin(direction) * 4*resolution)
 
     moved = True
     while moved == True:
@@ -110,16 +110,12 @@ def shoot_ray(direction):
                     r1.distance_x -= r1.x_vel * 0.01
                     r1.distance_y -= r1.y_vel * 0.01
                 r1.display()
-
-                r1.distance = math.sqrt((distance_x ** 2 + r1.distance_y ** 2))
-                #print(r1.distance)
-
-
         if moved == True:
             r1.x += r1.x_vel
             r1.y += r1.y_vel
             r1.distance_x += r1.x_vel
             r1.distance_y += r1.y_vel
+    r1.distance = math.sqrt((r1.distance_x ** 2 + r1.distance_y ** 2))
     rays.append(r1)
 
 
@@ -188,9 +184,21 @@ def get_input():
 
 def render_3d_world():
 
-    for i, ray in enumerate(rays):
+    #pygame.draw.rect(screen, (0, 0, 33), pygame.Rect(0, 0, width, height/2))
+    pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(0, height/2, width, 150))
+    for x in range(255):
+        pygame.draw.rect(screen, (x, x, x), pygame.Rect(0, height/2+150+x, width, 10))
 
-        pygame.draw.rect(screen, (i, i, 200), pygame.Rect(i*width/len(rays), height/2, width/len(rays), (ray.distance / 10) * 10))
+
+
+    for i, ray in enumerate(rays):
+        colour = 255 - ray.distance*0.8
+        if colour < 0:
+            colour = 0
+        if colour > 255:
+            colour = 255
+        pygame.draw.rect(screen, (colour, colour, colour), pygame.Rect(((width/len(rays))*i), height/2, 12, height-ray.distance))
+
 
 def display():
     global rays
@@ -203,8 +211,8 @@ def display():
     #pygame.draw.polygon(screen, (255, 0, 0),
                         #points=[(p1.x, p1.y), (p1.direction + 360, 100), (p1.direction + 360 + p1.fov, 100)])
     rays = []
-    for i in range(round(p1.fov/resolution*3)):
-        shoot_ray(p1.direction + i*resolution/3)
+    for i in range(round(p1.fov/resolution*5)):
+        shoot_ray(p1.direction + i*resolution/5)
     render_3d_world()
 
 
