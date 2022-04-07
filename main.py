@@ -10,14 +10,20 @@ pygame.init()
 fps = 60
 fpsClock = pygame.time.Clock()
 
-width, height = 640, 480
+width, height = 1000, 480
+
 screen = pygame.display.set_mode((width, height))
+top_screen = pygame.Surface((width, height/2))
+
+
+
+
 
 global_x = 0
 global_y = 0
 
 
-resolution = 2
+resolution = 3
 #colours
 RED = (255, 0, 0)
 class player:
@@ -63,7 +69,7 @@ def create_level():
     global objects
     objects = []
 
-    for x in range(10):
+    for x in range(5):
         objects.append(object(random.randint(0, 1000), random.randint(0, 1000), random.randint(100, 200), random.randint(100, 200)))
 
     for obj in objects.copy():
@@ -87,11 +93,13 @@ def check_hitboxes(placex, placey):
     return True
 
 
-def shoot_ray(direction):
+def shoot_ray(direction, direct):
     global global_x
     global global_y
     distance_x = 0
     distance_y = 0
+
+
 
 
     direction -= 90
@@ -116,6 +124,7 @@ def shoot_ray(direction):
             r1.distance_x += r1.x_vel
             r1.distance_y += r1.y_vel
     r1.distance = math.sqrt((r1.distance_x ** 2 + r1.distance_y ** 2))
+    #r1.distance = r1.distance * math.cos(direction)
     rays.append(r1)
 
 
@@ -129,6 +138,12 @@ def get_input():
 
 
     keys_pressed = pygame.key.get_pressed()  # Gets all pressed keys
+
+    direction = p1.direction * (math.pi/180)
+    direction -= 180
+    x_vel = math.cos(direction) * p1.speed
+    y_vel = math.sin(direction) * p1.speed
+
 
     if keys_pressed[pygame.K_a] and keys_pressed[
         pygame.K_w]:  # these check if you are trying to move diagonally, and if so reduce your speed to normal (speed/1.41)
@@ -159,51 +174,74 @@ def get_input():
 
     else:
         if keys_pressed[pygame.K_a]:  # movement for only one key pressed
-            global_x += p1.speed  # Move left
+            pass  # Move left
             if check_hitboxes(global_x, global_y) == False:
-                global_x -= p1.speed
+                pass
 
         if keys_pressed[pygame.K_d]:
-            global_x -= p1.speed  # Move right
+
+            pass
+
+
             if check_hitboxes(global_x, global_y) == False:
-                global_x += p1.speed
+                pass
 
         if keys_pressed[pygame.K_w]:
-            global_y += p1.speed  # Move up
+            global_y += y_vel
+            global_x += x_vel
+
             if check_hitboxes(global_x, global_y) == False:
-                global_y -= p1.speed
+                global_y -= y_vel
+                global_x -= x_vel
+
+
 
         if keys_pressed[pygame.K_s]:
-            global_y -= p1.speed
+            global_y -= y_vel
+            global_x -= x_vel
             if check_hitboxes(global_x, global_y) == False:
-                global_y += p1.speed
+                global_y += y_vel
+                global_x += x_vel
     if keys_pressed[pygame.K_LEFT]:
-        p1.direction -= 2
+        p1.direction -= 4
     if keys_pressed[pygame.K_RIGHT]:
-        p1.direction += 2
+        p1.direction += 4
 
 def render_3d_world():
 
-    #pygame.draw.rect(screen, (0, 0, 33), pygame.Rect(0, 0, width, height/2))
+    global top_screen
+
+
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(0, height/2, width, 150))
+
+
     for x in range(255):
-        pygame.draw.rect(screen, (x, x, x), pygame.Rect(0, height/2+150+x, width, 10))
+        pygame.draw.rect(screen, (x, x, x), pygame.Rect(0, height/2+80+x, width, 10))
+
 
 
 
     for i, ray in enumerate(rays):
-        colour = 255 - ray.distance*0.8
+        colour = 255 - ray.distance*0.6
         if colour < 0:
             colour = 0
         if colour > 255:
             colour = 255
         pygame.draw.rect(screen, (colour, colour, colour), pygame.Rect(((width/len(rays))*i), height/2, 12, height-ray.distance))
+        pygame.draw.rect(top_screen, (colour, colour, colour), pygame.Rect(((width / len(rays))*i), 0, 12, ray.distance))
+
+    top_screen = pygame.transform.flip(top_screen, False, True)
+    for x in range(255):
+        pygame.draw.rect(top_screen, (abs(x-255), abs(x-255), abs(x-255)), pygame.Rect(0, x/4, width, x/4))
+    screen.blit(top_screen, (0, 0))
+
+
 
 
 def display():
     global rays
     pygame.draw.rect(screen, RED, pygame.Rect(p1.x, p1.y, 5, 5))
-
+    global direct
     for object in objects:
 
 
@@ -211,9 +249,16 @@ def display():
     #pygame.draw.polygon(screen, (255, 0, 0),
                         #points=[(p1.x, p1.y), (p1.direction + 360, 100), (p1.direction + 360 + p1.fov, 100)])
     rays = []
-    for i in range(round(p1.fov/resolution*5)):
-        shoot_ray(p1.direction + i*resolution/5)
+    total_rays = (round(p1.fov/resolution*5))
+    print(total_rays)
+    for i in range(total_rays):
+        #spacing = ((i - (round(total_rays/2)))) * 0.1
+        spacing = 0
+        shoot_ray(p1.direction + i*resolution/5-spacing,0)
+
     render_3d_world()
+
+
 
 
 create_level()
